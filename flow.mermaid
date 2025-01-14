@@ -4,36 +4,39 @@ sequenceDiagram
     participant CLI as Whook CLI
     participant Con as Conductor
     participant R as Relay Server
+    participant Dev as Local Dev Server
 
     Note over U,R: Phase 1: Setup
-
-    U->>CLI: whook start
+    U->>CLI: whook start --forward http://localhost:3000
     Note over CLI: Create new project if needed
-
-
     CLI->>Con: POST api.whook.dev/tunnel<br/>{"project": "my-project"}
     activate Con
     Note over Con: Find available relay server
     Con-->>CLI: {"websocket_url": "wss://relay-1.whook.dev/tunnel",<br/>"token": "abc123", "project_id": "proj_123"}
     deactivate Con
-
     CLI->>R: Connect to WebSocket<br/>wss://relay-1.whook.dev/tunnel?token=abc123
     activate R
     R-->>CLI: WebSocket connection established
-
     CLI->>U: ✓ Tunnel ready!<br/>https://my-project.whook.dev
 
     Note over U,R: Phase 2: Request Handling
-
     C->>Con: POST my-project.whook.dev
     activate Con
     Con->>Con: Look up project's relay server
     Con->>R: Forward request
     R->>CLI: Send request over WebSocket
+    
+    alt Local Development Server Configured
+        CLI->>Dev: Forward request to localhost:3000
+        Dev-->>CLI: Response
+        CLI-->>R: Send dev server response over WebSocket
+    else Display Only Mode
+        CLI-->>R: Send default response over WebSocket
+    end
 
-    CLI-->>R: Send response over WebSocket
     R-->>Con: Forward response
     Con-->>C: Return response
     CLI-->>U: Display request
+
     deactivate Con
     deactivate R
