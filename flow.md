@@ -2,47 +2,7 @@
 
 ## Sequence Diagram
 
-```mermaid
-sequenceDiagram
-    actor U as User
-    actor C as Webhook Sender
-    participant CLI as Whook CLI
-    participant Con as Conductor
-    participant R as Relay Server
-
-    Note over U,R: Phase 1: Setup
-
-    U->>CLI: whook start
-    Note over CLI: Create new project if needed
-
-
-    CLI->>Con: POST api.whook.dev/tunnel<br/>{"project": "my-project"}
-    activate Con
-    Note over Con: Find available relay server
-    Con-->>CLI: {"websocket_url": "wss://relay-1.whook.dev/tunnel",<br/>"token": "abc123", "project_id": "proj_123"}
-    deactivate Con
-
-    CLI->>R: Connect to WebSocket<br/>wss://relay-1.whook.dev/tunnel?token=abc123
-    activate R
-    R-->>CLI: WebSocket connection established
-
-    CLI->>U: ✓ Tunnel ready!<br/>https://my-project.whook.dev
-
-    Note over U,R: Phase 2: Request Handling
-
-    C->>Con: POST my-project.whook.dev
-    activate Con
-    Con->>Con: Look up project's relay server
-    Con->>R: Forward request
-    R->>CLI: Send request over WebSocket
-
-    CLI-->>R: Send response over WebSocket
-    R-->>Con: Forward response
-    Con-->>C: Return response
-    CLI-->>U: Display request
-    deactivate Con
-    deactivate R
-```
+![Sequence Diagram](resources/sequence.png "Sequence Diagram")
 
 ### Phase 1: Initial Setup
 
